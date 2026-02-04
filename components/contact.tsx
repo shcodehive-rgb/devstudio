@@ -1,9 +1,39 @@
 "use client"
 
+import { useState, useRef, type FormEvent } from "react"
 import { motion } from "framer-motion"
 import { Mail, Phone, MapPin, Send, CheckCircle, MessageCircle } from "lucide-react"
+import emailjs from '@emailjs/browser';
 
 export function Contact() {
+    const form = useRef<HTMLFormElement>(null);
+    const [loading, setLoading] = useState(false);
+    const [status, setStatus] = useState('');
+
+    const sendEmail = (e: FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+
+        // Placeholders - User to replace later
+        const SERVICE_ID = "service_352qmmo";
+        const TEMPLATE_ID = "YOUR_TEMPLATE_ID";
+        const PUBLIC_KEY = "YOUR_PUBLIC_KEY";
+
+        if (form.current) {
+            emailjs.sendForm(SERVICE_ID, TEMPLATE_ID, form.current, PUBLIC_KEY)
+                .then((result) => {
+                    setLoading(false);
+                    setStatus('success');
+                    if (form.current) form.current.reset();
+                    setTimeout(() => setStatus(''), 5000);
+                }, (error) => {
+                    setLoading(false);
+                    setStatus('error');
+                    console.log(error.text);
+                });
+        }
+    };
+
     return (
         <section id="contact" className="py-24 bg-[#0a0a0a] relative overflow-hidden">
             {/* Background Glow */}
@@ -86,7 +116,7 @@ export function Contact() {
                         </div>
                     </motion.div>
 
-                    {/* RIGHT: Contact Form */}
+                    {/* RIGHT: Contact Form (EmailJS) */}
                     <motion.div
                         initial={{ opacity: 0, x: 50 }}
                         whileInView={{ opacity: 1, x: 0 }}
@@ -106,26 +136,59 @@ export function Contact() {
                                 </div>
                             </div>
 
-                            <form className="space-y-6">
-                                <div className="space-y-2">
-                                    <label htmlFor="name" className="text-sm font-medium text-gray-400">Your Name</label>
-                                    <input type="text" id="name" placeholder="John Doe" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500 transition-colors" />
+                            <form ref={form} onSubmit={sendEmail} className="space-y-6">
+                                <div>
+                                    <label className="block text-gray-400 text-sm mb-2">Your Name</label>
+                                    <input
+                                        type="text"
+                                        name="user_name"
+                                        required
+                                        className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none transition"
+                                        placeholder="John Doe"
+                                    />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label htmlFor="email" className="text-sm font-medium text-gray-400">Email Address</label>
-                                    <input type="email" id="email" placeholder="john@example.com" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500 transition-colors" />
+                                <div>
+                                    <label className="block text-gray-400 text-sm mb-2">Email Address</label>
+                                    <input
+                                        type="email"
+                                        name="user_email"
+                                        required
+                                        className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none transition"
+                                        placeholder="john@example.com"
+                                    />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label htmlFor="message" className="text-sm font-medium text-gray-400">Project Details</label>
-                                    <textarea id="message" rows={4} placeholder="Tell us about your project..." className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-cyan-500 transition-colors resize-none" />
+                                <div>
+                                    <label className="block text-gray-400 text-sm mb-2">Project Details</label>
+                                    <textarea
+                                        name="message"
+                                        required
+                                        rows={4}
+                                        className="w-full bg-[#1a1a1a] border border-gray-700 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none transition"
+                                        placeholder="Tell us about your project..."
+                                    ></textarea>
                                 </div>
 
-                                <button type="submit" className="w-full py-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold text-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-                                    Send Message
-                                    <Send size={20} />
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg transition duration-300 flex justify-center items-center gap-2"
+                                >
+                                    {loading ? 'Sending...' : (
+                                        <>
+                                            Send Message <Send size={20} />
+                                        </>
+                                    )}
                                 </button>
+
+                                {/* Success/Error Messages */}
+                                {status === 'success' && (
+                                    <p className="text-green-500 text-center mt-4">✅ Message sent successfully! We'll get back to you soon.</p>
+                                )}
+                                {status === 'error' && (
+                                    <p className="text-red-500 text-center mt-4">❌ Something went wrong. Please try again.</p>
+                                )}
                             </form>
                         </div>
                     </motion.div>
